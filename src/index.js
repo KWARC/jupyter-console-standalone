@@ -78,24 +78,42 @@ function main() {
     // TODO: Get state for kernel
     var initialState = 'a = 10\nb = 15';   // This is just a string to execute on kernel!
 
+    // Set up Jupyterlab manager
     var manager = new ServiceManager();
     var panel;
     manager.ready.then(function() {
 
+        // Setup the jupyterlab components we need:
         var options = setup(manager);
-        console.log(options.name);
         options.kernelPreference = kernelPreference;
+
+        // Create the console:
         panel = new ConsolePanel(options);
+
+        // Register keyboard shortcuts with panel:
         setupCommands(panel);
 
+        // Attach console to document
+        document.body.innerHTML = '';
         Widget.attach(panel, document.body);
         window.onresize = function() { panel.update(); };
 
+        // Wait for session and kernel to be ready
         return panel.session.ready;
-
     }).then(function() {
         return panel.session.kernel.ready;
     }).then(function() {
+
+        // Configure clean-up of kernel:
+        var onBeforeUnLoadEvent = false;
+        window.onunload = window.onbeforeunload = function() {
+            if(!onBeforeUnLoadEvent){
+                onBeforeUnLoadEvent = true;
+                panel.session.shutdown();
+            }
+        };
+
+        // Pass initial state to kernel:
         let content = {
             code: initialState,
             stop_on_error: false,
