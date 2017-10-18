@@ -66,17 +66,39 @@ function setupCommands(consolePanel) {
     return commands;
 }
 
+/**
+ * Gets a query parameter from the current page url
+ * @param {string} param Parameter to extract
+ * @param {*} def Default value should the parameter be missing
+ */
+function $_GET(param, def){
+    var vars = {};
+    window.location.href.replace( location.hash, '' ).replace(
+      /[?&]+([^=&]+)=?([^&]*)?/gi, // regexp
+      function( m, key, value ) { // callback
+        vars[key] = value !== undefined ? value : '';
+      }
+    );
+
+    return vars[param] ? decodeURIComponent(vars[param]) : (def || null);
+  }
+
+var DEFAULT_KERNEL_NAME = 'python3'; // the default kernel to fall back to
+var DEFAULT_LANGUAGE_NAME = 'python'; // the name of the language to use
+var DEFAULT_INITIAL_STATE = ''; // the name of the initial state
 
 function main() {
-    // TODO: Get kernel config
+    var language = $_GET('language', DEFAULT_LANGUAGE_NAME);
+
     var kernelPreference = {
-        name: 'python3',
-        language: 'python',
+        name: $_GET('kernel', DEFAULT_KERNEL_NAME),
+        language: language,
         shouldStart: true,
         canStart: true,
     };
-    // TODO: Get state for kernel
-    var initialState = 'a = 10\nb = 15';   // This is just a string to execute on kernel!
+
+    // The initial state: A string to execute in the kernel
+    var initialState = $_GET('state', '');
 
     // Set up Jupyterlab manager
     var manager = new ServiceManager();
