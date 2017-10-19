@@ -7,7 +7,9 @@ var Widget = require('@phosphor/widgets').Widget;
 var ConsolePanel = require('@jupyterlab/console').ConsolePanel;
 var editorServices = require('@jupyterlab/codemirror').editorServices;
 var rendermime = require('@jupyterlab/rendermime');
-var ServiceManager = require('@jupyterlab/services').ServiceManager;
+var ServiceManager = require('@jupyterlab/services').ServiceManager
+var ServerConnection = require('@jupyterlab/services/lib/serverconnection').ServerConnection;
+
 
 var uuid = require('@jupyterlab/coreutils').uuid;
 
@@ -87,6 +89,10 @@ var DEFAULT_KERNEL_NAME = 'python3'; // the default kernel to fall back to
 var DEFAULT_LANGUAGE_NAME = 'python'; // the name of the language to use
 var DEFAULT_INITIAL_STATE = ''; // the name of the initial state
 
+function get_config(key){
+    return JSON.parse(document.getElementById('config_data').innerHTML)[key];
+}
+
 function main() {
     var language = $_GET('language', DEFAULT_LANGUAGE_NAME);
 
@@ -100,8 +106,10 @@ function main() {
     // The initial state: A string to execute in the kernel
     var initialState = $_GET('state', '');
 
+    var baseURL = location.protocol + '//' + location.host + '/' + get_config("base_url");
+
     // Set up Jupyterlab manager
-    var manager = new ServiceManager();
+    var manager = new ServiceManager({'serverSettings': ServerConnection.makeSettings({'baseUrl': baseURL})});
     var panel;
     manager.ready.then(function() {
 
